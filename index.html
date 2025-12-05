@@ -794,15 +794,20 @@
                 const savedData = localStorage.getItem('managerDashboardData');
                 if (savedData) {
                     const parsedData = JSON.parse(savedData);
-                    // Merge saved data with default structure to ensure all fields exist
-                    // Allow saved `target` to override defaults (so targets are editable)
-                    appData.kpiData = parsedData.map((savedItem, index) => {
-                        const defaultItem = defaultData.kpiData[index] || {};
-                        return {
-                            ...defaultItem,
-                            ...savedItem,
-                            target: (typeof savedItem.target !== 'undefined') ? savedItem.target : defaultItem.target
-                        };
+                    // Merge saved data with default structure, matching by manager + kpi name
+                    appData.kpiData = defaultData.kpiData.map((defaultItem) => {
+                        const savedItem = parsedData.find(item => 
+                            item.manager === defaultItem.manager && item.kpi === defaultItem.kpi
+                        );
+                        if (savedItem) {
+                            return {
+                                ...defaultItem,
+                                ...savedItem,
+                                target: (typeof savedItem.target !== 'undefined') ? savedItem.target : defaultItem.target,
+                                actual: (typeof savedItem.actual !== 'undefined') ? savedItem.actual : defaultItem.actual
+                            };
+                        }
+                        return { ...defaultItem };
                     });
                 }
             } catch (error) {
